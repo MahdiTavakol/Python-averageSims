@@ -91,6 +91,33 @@ plt.sca(ax)
 for i in range(num_sims):
 	print(f"\t\tPlotting the {folders[i]}")
 	plt.plot(epsilon,sigma[:,i],color=colors[i],label=f"{folders[i]}")
+	
+	
+	
+	
+print("\t\tCalculating the Young modulus")
+index04 = 0
+for i in range(len(epsilon)):
+	if (epsilon[i] <= -0.04):
+		index04 = i
+		break
+
+z1 = np.polyfit(epsilon[:index04],sigma[:index04,0],1)
+z2 = np.polyfit(epsilon[:index04],sigma[:index04,1],1)
+z3 = np.polyfit(epsilon[:index04],sigma[:index04,2],1)
+
+
+# The text box
+xmin, xmax = ax.get_xlim()
+ymin, ymax = ax.get_ylim()
+
+y_txt = ymin+0.5*(ymax-ymin)
+x_txt = xmin+0.3*(xmax-xmin)
+props = dict(boxstyle='round,pad=0.5', facecolor='lightblue', edgecolor='navy', linewidth=2)
+text = f"E1={z1[0]:.2f}(GPa)\nE2={z2[0]:.2f}(GPa)\nE3={z3[0]:.2f}(GPa)"
+textbox = ax.text(x_txt, y_txt,text, fontsize=fontsize-2, bbox=props, verticalalignment='top', horizontalalignment='center')
+
+
 
 	
 plt.xlabel("Strain",fontsize=fontsize)
@@ -122,26 +149,23 @@ plt.fill_between(epsilon,sigma_min,sigma_max,color='black',alpha=0.2)
 
 
 # adjusting the min and max
-xmin, xmax = ax.get_xlim()
-ymin, ymax = ax.get_ylim()
 plt.ylim(ymin,ymax)
 
 
-# Calculating the secant modulus
-index04 = 0
-strain04 = 0
-for i in range(len(epsilon)):
-	if (epsilon[i] <= -0.04):
-		index04 = i
-		strain04 = epsilon[i]
-		break
-E = sigma_avg_smooth[index04]/strain04
+print("\t\tCalculating the average Young modulus")
+z4 = np.polyfit(epsilon[:index04],sigma_avg_smooth[:index04],1)
+z5 = np.polyfit(epsilon[:index04],sigma_min[:index04],1)
+z6 = np.polyfit(epsilon[:index04],sigma_max[:index04],1)
+E = z4[0]
+Emin = z5[0]
+Emax = z6[0]
+Eerr = max([Emax-E,E-Emin])
 
 # The text box
 y_txt = ymax-0.1*(ymax-ymin)
-x_txt = xmax-0.25*(xmax-xmin)
+x_txt = xmax-0.3*(xmax-xmin)
 props = dict(boxstyle='round,pad=0.5', facecolor='lightblue', edgecolor='navy', linewidth=2)
-textbox = ax2.text(x_txt, y_txt,f"E={E:.2f}(GPa)", fontsize=fontsize, bbox=props, verticalalignment='top', horizontalalignment='center')
+textbox = ax2.text(x_txt, y_txt,f"E={E:.2f}$\pm${Eerr:.2f}(GPa)", fontsize=fontsize-2, bbox=props, verticalalignment='top', horizontalalignment='center')
 
 
 plt.xlabel("Strain",fontsize=fontsize)
